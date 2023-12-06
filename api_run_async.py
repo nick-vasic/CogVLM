@@ -149,7 +149,6 @@ if __name__ == '__main__':
     # Start the Flask app only if the rank is 0
     if rank == 0:
         app.run(debug=False, port=5000)  # Set debug to False in production
-    else:
-        # For non-zero ranks, you can perform other tasks or simply do nothing
-        pass
+    
+    # Listen for requests
     listen_for_requests()
