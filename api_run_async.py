@@ -98,6 +98,7 @@ def process_chat(ch, method, properties, body):
                 no_prompt=False
             )
     except Exception as e:
+        print(e)
         response = json.dumps({"error": str(e)})
 
     ch.basic_publish(exchange='',
@@ -144,7 +145,7 @@ if __name__ == '__main__':
     parser = CogVLMModel.add_model_specific_args(parser)
     args = parser.parse_args()
 
-    #load_model(args, rank, world_size)  # Load the model when starting the app
+    load_model(args, rank, world_size)  # Load the model when starting the app
 
     # Start the Flask app only if the rank is 0
     if rank == 0:
