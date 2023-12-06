@@ -62,6 +62,7 @@ def chat_api():
     try:  
         with torch.no_grad():
             response, _, _ = chat(
+                image_path="",
                 model=model,
                 text_processor=text_processor_infer,
                 img_processor=image_processor,
