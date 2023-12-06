@@ -16,8 +16,7 @@ from utils.vision import get_image_processor
 IMAGE_PATHS = [
     'https://i0.wp.com/theconstructor.org/wp-content/uploads/2017/10/building-foundations.jpg',
     'https://plus.unsplash.com/premium_photo-1671808062726-2a7ffcd6109e',
-    'https://thumbs.dreamstime.com/b/construction-site-new-industrial-building-concrete-block-walls-columns-telescopic-crane-foamed-reinforced-260900151.jpg',
-    None
+    'https://thumbs.dreamstime.com/b/construction-site-new-industrial-building-concrete-block-walls-columns-telescopic-crane-foamed-reinforced-260900151.jpg'
     # Add more image paths
 ]
 
@@ -106,7 +105,8 @@ def main():
             if world_size > 1:
                 torch.distributed.broadcast_object_list(query, 0)
             query = query[0]
-            assert query is not None
+            if query is None: 
+                continue
                 
             try:
                 response, history, cache_image = chat(
