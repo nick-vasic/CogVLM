@@ -98,7 +98,6 @@ if __name__ == '__main__':
     parser.add_argument("--no_prompt", action='store_true', help='Sometimes there is no prompt in stage 1')
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--bf16", action="store_true")
-    args = parser.parse_args()
     rank = int(os.environ.get('RANK', 0))
     world_size = int(os.environ.get('WORLD_SIZE', 1))
     parser = CogVLMModel.add_model_specific_args(parser)
