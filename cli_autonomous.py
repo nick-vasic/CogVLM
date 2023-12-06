@@ -2,6 +2,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import json
 import random
 import time
 import torch
@@ -29,11 +30,17 @@ QUERIES = [
     # Add more queries
 ]
 
-def generate_random_image_path():
-    return random.choice(IMAGE_PATHS)
+def get_next_message():
+    image_path = random.choice(IMAGE_PATHS)
+    query = random.choice(QUERIES)
 
-def generate_random_query():
-    return random.choice(QUERIES)
+    # Creating a JSON-formatted string
+    message = json.dumps({
+        'image_path': image_path,
+        'query': query
+    })
+
+    return message
 
 def main():
     parser = argparse.ArgumentParser()
@@ -88,7 +95,15 @@ def main():
             history = None
             cache_image = None
             if rank == 0:
-                image_path = [generate_random_image_path()]
+                next_message = get_next_message()
+            else:
+                next_message = None
+
+            if next_message is None:
+                continue
+            
+            if rank == 0:
+                image_path = [json.loads(next_message).image_path]
             else:
                 image_path = [None]
 
@@ -98,7 +113,7 @@ def main():
             assert image_path is not None
 
             if rank == 0:
-                query = [generate_random_query()]
+                query = [json.loads(next_message).query]
             else:
                 query = [None]
     
