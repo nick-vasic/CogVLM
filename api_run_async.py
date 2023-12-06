@@ -24,7 +24,7 @@ model = image_processor = text_processor_infer = None
 
 def listen_for_requests():
     # Set your RabbitMQ server credentials and host
-    credentials = pika.PlainCredentials('guest', '')
+    credentials = pika.PlainCredentials('guest', 'guest')
     parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
@@ -111,7 +111,7 @@ def process_chat(ch, method, properties, body):
 def chat_api():
     content = request.json
     # Set your RabbitMQ server credentials and host
-    credentials = pika.PlainCredentials('guest', '')
+    credentials = pika.PlainCredentials('guest', 'guest')
     parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
