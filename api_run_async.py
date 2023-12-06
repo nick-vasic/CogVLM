@@ -128,7 +128,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--max_length", type=int, default=2048, help='max length of the total sequence')
-    parser.add_argument("--top_p", type=float, default=0.4, help='top p for nucleus sampling')
+    parser.add_argument("--top_p", type=float, default=0.4, help='top p aafor nucleus sampling')
     parser.add_argument("--top_k", type=int, default=1, help='top k for top k sampling')
     parser.add_argument("--temperature", type=float, default=.8, help='temperature for sampling')
     parser.add_argument("--english", action='store_true', help='only output English')
@@ -145,10 +145,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     #load_model(args, rank, world_size)  # Load the model when starting the app
-    listen_for_requests()
+
     # Start the Flask app only if the rank is 0
     if rank == 0:
         app.run(debug=False, port=5000)  # Set debug to False in production
     else:
         # For non-zero ranks, you can perform other tasks or simply do nothing
         pass
+    listen_for_requests()
