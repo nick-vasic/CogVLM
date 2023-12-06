@@ -144,7 +144,7 @@ if __name__ == '__main__':
     parser = CogVLMModel.add_model_specific_args(parser)
     args = parser.parse_args()
 
-    load_model(args, rank, world_size)  # Load the model when starting the app
+    #load_model(args, rank, world_size)  # Load the model when starting the app
     listen_for_requests()
     # Start the Flask app only if the rank is 0
     if rank == 0:
