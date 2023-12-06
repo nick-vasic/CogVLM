@@ -2,6 +2,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import random
 import time
 import torch
 import argparse
@@ -11,6 +12,27 @@ from utils.chat import chat
 from models.cogvlm_model import CogVLMModel
 from utils.language import llama2_tokenizer, llama2_text_processor_inference
 from utils.vision import get_image_processor
+
+IMAGE_PATHS = [
+    'https://i0.wp.com/theconstructor.org/wp-content/uploads/2017/10/building-foundations.jpg',
+    'https://plus.unsplash.com/premium_photo-1671808062726-2a7ffcd6109e',
+    'https://thumbs.dreamstime.com/b/construction-site-new-industrial-building-concrete-block-walls-columns-telescopic-crane-foamed-reinforced-260900151.jpg',
+    # Add more image paths
+]
+
+# Example list of queries
+QUERIES = [
+    'What is in this image?',
+    'Describe this picture.',
+    'What colors do you see in the image?',
+    # Add more queries
+]
+
+def generate_random_image_path():
+    return random.choice(IMAGE_PATHS)
+
+def generate_random_query():
+    return random.choice(QUERIES)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -65,7 +87,7 @@ def main():
             history = None
             cache_image = None
             if rank == 0:
-                image_path = ['https://i0.wp.com/theconstructor.org/wp-content/uploads/2017/10/building-foundations.jpg']
+                image_path = [generate_random_image_path()]
             else:
                 image_path = [None]
 
@@ -75,7 +97,7 @@ def main():
             assert image_path is not None
 
             if rank == 0:
-                query = ['What is in this image?']
+                query = [generate_random_query()]
             else:
                 query = [None]
     
