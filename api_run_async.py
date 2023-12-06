@@ -5,6 +5,10 @@ import os
 import base64
 import torch
 import json
+import pika  # Import pika for RabbitMQ interaction
+import argparse  # Import argparse for command line argument parsing
+
+# Import custom modules
 from sat.model.mixins import CachedAutoregressiveMixin
 from sat.mpu import get_model_parallel_world_size
 from utils.parser import parse_response
