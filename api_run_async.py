@@ -4,6 +4,7 @@ import io
 import os
 import base64
 import torch
+import json
 from sat.model.mixins import CachedAutoregressiveMixin
 from sat.mpu import get_model_parallel_world_size
 from utils.parser import parse_response
@@ -11,12 +12,27 @@ from utils.chat import chat
 from models.cogvlm_model import CogVLMModel
 from utils.language import llama2_tokenizer, llama2_text_processor_inference
 from utils.vision import get_image_processor
-from celery import Celery
 
 app = Flask(__name__)
 
 # Global variables for model components
 model = image_processor = text_processor_infer = None
+
+def listen_for_requests():
+    # Set your RabbitMQ server credentials and host
+    credentials = pika.PlainCredentials('guest', '')
+    parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+
+    # Declare the queue
+    channel.queue_declare(queue='chat_queue', durable=True)
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(queue='chat_queue', on_message_callback=process_chat)
+
+    print(' [*] Waiting for messages. To exit press CTRL+C')
+    channel.start_consuming()
+
 
 def load_model(args, rank, world_size): 
     global model, image_processor, text_processor_infer 
@@ -46,10 +62,8 @@ def load_model(args, rank, world_size):
 
     return model, image_processor, text_processor_infer
 
-
-@app.route('/chat', methods=['POST'])
-def chat_api():
-    content = request.json
+def process_chat(ch, method, properties, body):
+    content = json.loads(body)
     input_text = content.get('input_text', '')
     temperature = content.get('temperature', 0.8)
     top_p = content.get('top_p', 0.4)
@@ -80,9 +94,31 @@ def chat_api():
                 no_prompt=False
             )
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        response = jsonify({"error": str(e)})
 
-    return jsonify({"response": response})
+    ch.basic_publish(exchange='',
+                     routing_key='chat_response',
+                     body=response,
+                     properties=pika.BasicProperties(delivery_mode=2))
+        
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+@app.route('/chat', methods=['POST'])
+def chat_api():
+    content = request.json
+    # Set your RabbitMQ server credentials and host
+    credentials = pika.PlainCredentials('guest', '')
+    parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+
+    # Declare the queue
+    channel.queue_declare(queue='chat_queue', durable=True)
+    channel.basic_publish(exchange='', 
+                          routing_key='chat_queue', 
+                          body=json.dumps(content), 
+                          properties=pika.BasicProperties(delivery_mode=2))
+    return jsonify({"status": "Request enqueued"})
 
 if __name__ == '__main__':
     import argparse
@@ -105,6 +141,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     load_model(args, rank, world_size)  # Load the model when starting the app
+    listen_for_requests()
     # Start the Flask app only if the rank is 0
     if rank == 0:
         app.run(debug=False, port=5000)  # Set debug to False in production
