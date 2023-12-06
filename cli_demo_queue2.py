@@ -98,32 +98,31 @@ def main():
             if rank == 0:    
                 print("PATH: " + image_path)
                 print("QUERY: " + query)
-            assert image_path is not None
-            assert query is not None
 
-            try:
-                response, history, cache_image = chat(
-                    image_path,
-                    model,
-                    text_processor_infer,
-                    image_processor,
-                    query,
-                    history=history,
-                    image=cache_image,
-                    max_length=args.max_length,
-                    top_p=args.top_p,
-                    temperature=args.temperature,
-                    top_k=args.top_k,
-                    invalid_slices=text_processor_infer.invalid_slices,
-                    no_prompt=args.no_prompt
-                )
-            except Exception as e:
-                print(e)
-                break
-            if rank == 0:
-                print("Model: "+response)
-                if tokenizer.signal_type == "grounding":
-                    print("Grounding result is saved at ./output.png")
+            if image_path is not None: 
+                try:
+                    response, history, cache_image = chat(
+                        image_path,
+                        model,
+                        text_processor_infer,
+                        image_processor,
+                        query,
+                        history=history,
+                        image=cache_image,
+                        max_length=args.max_length,
+                        top_p=args.top_p,
+                        temperature=args.temperature,
+                        top_k=args.top_k,
+                        invalid_slices=text_processor_infer.invalid_slices,
+                        no_prompt=args.no_prompt
+                    )
+                except Exception as e:
+                    print(e)
+                    break
+                if rank == 0:
+                    print("Model: "+response)
+                    if tokenizer.signal_type == "grounding":
+                        print("Grounding result is saved at ./output.png")
 
 if __name__ == "__main__":
     main()
