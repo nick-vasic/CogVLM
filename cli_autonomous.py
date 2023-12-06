@@ -8,6 +8,7 @@ import time
 import torch
 import argparse
 from sat.model.mixins import CachedAutoregressiveMixin
+import pika  # Import pika for RabbitMQ interaction
 
 from utils.chat import chat
 from models.cogvlm_model import CogVLMModel
@@ -41,6 +42,21 @@ def get_next_message():
     })
 
     return message
+
+def get_next_message_from_queue():
+    credentials = pika.PlainCredentials('guest', 'guest')
+    parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+
+    channel.queue_declare(queue='chat_queue', durable=True)
+
+    method_frame, header_frame, body = channel.basic_get(queue='chat_queue')
+    if method_frame:
+        channel.basic_ack(method_frame.delivery_tag)
+        return json.loads(body)
+    else:
+        return None
 
 def main():
     parser = argparse.ArgumentParser()
@@ -95,7 +111,7 @@ def main():
             history = None
             cache_image = None
             if rank == 0:
-                next_message = get_next_message()
+                next_message = get_next_message_from_queue()
             else:
                 next_message = None
 
