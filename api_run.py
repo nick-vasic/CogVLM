@@ -53,6 +53,7 @@ def chat_api():
     top_p = content.get('top_p', 0.4)
     top_k = content.get('top_k', 10)
     image_data = content.get('image', None)
+    image_path = content.get('image_path', None)
 
     if image_data:
         pil_img = Image.open(io.BytesIO(base64.b64decode(image_data)))
@@ -62,7 +63,7 @@ def chat_api():
     try:  
         with torch.no_grad():
             response, _, _ = chat(
-                image_path="",
+                image_path=image_path,
                 model=model,
                 text_processor=text_processor_infer,
                 img_processor=image_processor,
