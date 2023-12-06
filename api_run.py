@@ -17,14 +17,14 @@ app = Flask(__name__)
 # Global variables for model components
 model = image_processor = text_processor_infer = None
 
-def load_model(args): 
+def load_model(args, rank, world_size): 
     global model, image_processor, text_processor_infer 
     model, model_args = CogVLMModel.from_pretrained(
         args.from_pretrained,
         args=argparse.Namespace(
         deepspeed=None,
-        local_rank=0,
-        rank=0,
+        local_rank=rank,
+        rank=rank,
         world_size=world_size,
         model_parallel_size=world_size,
         mode='inference',
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     parser = CogVLMModel.add_model_specific_args(parser)
     args = parser.parse_args()   
 
-    load_model(args)  # Load the model when starting the app
+    load_model(args, rank, world_size)  # Load the model when starting the app
     # Start the Flask app only if the rank is 0
     if rank == 0:
         app.run(debug=False, port=5000)  # Set debug to False in production
