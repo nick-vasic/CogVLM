@@ -49,18 +49,17 @@ def load_model(args, rank, world_size):
             world_size=world_size,
             model_parallel_size=world_size,
             mode='inference',
-            fp16=args.fp16,
-            bf16=args.bf16,
             skip_init=True,
             use_gpu_initialization=True if torch.cuda.is_available() else False,
-            device=f'cuda'
-        ),
-        overwrite_args={'model_parallel_size': world_size} if world_size != 1 else {}
-    )
+            device='cuda',
+            **vars(args)
+    ), overwrite_args={'model_parallel_size': world_size} if world_size != 1 else {})
     model = model.eval()
     assert world_size == get_model_parallel_world_size(), "world size must equal to model parallel size for cli_demo!"
+
     tokenizer = llama2_tokenizer(args.local_tokenizer, signal_type=args.version)
     image_processor = get_image_processor(model_args.eva_args["image_size"][0])
+    
     model.add_mixin('auto-regressive', CachedAutoregressiveMixin())
     text_processor_infer = llama2_text_processor_inference(tokenizer, args.max_length, model.image_length)
 
@@ -134,7 +133,7 @@ if __name__ == '__main__':
     parser.add_argument("--temperature", type=float, default=.8, help='temperature for sampling')
     parser.add_argument("--english", action='store_true', help='only output English')
     parser.add_argument("--version", type=str, default="chat", help='version to interact with')
-    parser.add_argument("--from_pretrained", type=str, default="cogvlm-chat", help='pretrained ckpt')
+    parser.add_argument("--from_pretrained", type=str, default="cogvlm-chat-v1.1", help='pretrained ckpt')
     parser.add_argument("--local_tokenizer", type=str, default="lmsys/vicuna-7b-v1.5", help='tokenizer path')
     parser.add_argument("--no_prompt", action='store_true', help='Sometimes there is no prompt in stage 1')
     parser.add_argument("--fp16", action="store_true")
