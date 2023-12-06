@@ -98,7 +98,7 @@ def process_chat(ch, method, properties, body):
                 no_prompt=False
             )
     except Exception as e:
-        response = jsonify({"error": str(e)})
+        response = json.dumps({"error": str(e)})
 
     ch.basic_publish(exchange='',
                      routing_key='chat_response',
