@@ -5,6 +5,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import time
 import torch
 import argparse
+import pika
+import json
 from sat.model.mixins import CachedAutoregressiveMixin
 
 from utils.chat import chat
@@ -12,6 +14,21 @@ from models.cogvlm_model import CogVLMModel
 from utils.language import llama2_tokenizer, llama2_text_processor_inference
 from utils.vision import get_image_processor
 
+def get_next_message_from_queue():
+    credentials = pika.PlainCredentials('guest', 'guest')
+    parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+
+    channel.queue_declare(queue='chat_queue', durable=True)
+
+    method_frame, header_frame, body = channel.basic_get(queue='chat_queue')
+    if method_frame:
+        channel.basic_ack(method_frame.delivery_tag)
+        return json.loads(body)
+    else:
+        return None
+    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--max_length", type=int, default=2048, help='max length of the total sequence')
@@ -64,28 +81,23 @@ def main():
             print('Welcome to CogVLM-CLI. Enter an image URL or local file path to load an image. Continue inputting text to engage in a conversation. Type "clear" to start over, or "stop" to end the program.')
     with torch.no_grad():
         while True:
-            time.sleep(2)
             history = None
             cache_image = None
             if rank == 0:
-                image_path = ['https://i0.wp.com/theconstructor.org/wp-content/uploads/2017/10/building-foundations.jpg']
+                message = get_next_message_from_queue()
+                if message is None:
+                    continue  # No message, continue to next iteration
+                image_path = message.get('image_path', '')
+                query = message.get('input_text', '')
             else:
-                image_path = [None]
+                image_path = None
+                query = None
             if world_size > 1:
                 torch.distributed.broadcast_object_list(image_path, 0)
-            image_path = image_path[0]
-            assert image_path is not None
-
-            if rank == 0:
-                query = ['What is in this image?']
-            else:
-                query = [None]
-    
-            if world_size > 1:
                 torch.distributed.broadcast_object_list(query, 0)
-            query = query[0]
+            assert image_path is not None
             assert query is not None
-                
+
             try:
                 response, history, cache_image = chat(
                     image_path,
