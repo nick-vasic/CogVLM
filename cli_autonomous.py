@@ -17,6 +17,7 @@ IMAGE_PATHS = [
     'https://i0.wp.com/theconstructor.org/wp-content/uploads/2017/10/building-foundations.jpg',
     'https://plus.unsplash.com/premium_photo-1671808062726-2a7ffcd6109e',
     'https://thumbs.dreamstime.com/b/construction-site-new-industrial-building-concrete-block-walls-columns-telescopic-crane-foamed-reinforced-260900151.jpg',
+    None
     # Add more image paths
 ]
 
@@ -25,6 +26,7 @@ QUERIES = [
     'What is in this image?',
     'Describe this picture.',
     'What colors do you see in the image?',
+    None
     # Add more queries
 ]
 
