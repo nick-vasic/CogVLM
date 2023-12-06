@@ -95,6 +95,9 @@ def main():
             if world_size > 1:
                 torch.distributed.broadcast_object_list([image_path], 0)
                 torch.distributed.broadcast_object_list([query], 0)
+            if rank == 0:    
+                print("PATH: " + image_path)
+                print("QUERY: " + query)
             assert image_path is not None
             assert query is not None
 
