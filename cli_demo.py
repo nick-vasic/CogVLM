@@ -34,16 +34,16 @@ def main():
     model, model_args = CogVLMModel.from_pretrained(
         args.from_pretrained,
         args=argparse.Namespace(
-        deepspeed=None,
-        local_rank=rank,
-        rank=rank,
-        world_size=world_size,
-        model_parallel_size=world_size,
-        mode='inference',
-        skip_init=True,
-        use_gpu_initialization=True if torch.cuda.is_available() else False,
-        device='cuda',
-        **vars(args)
+            deepspeed=None,
+            local_rank=rank,
+            rank=rank,
+            world_size=world_size,
+            model_parallel_size=world_size,
+            mode='inference',
+            skip_init=True,
+            use_gpu_initialization=True if torch.cuda.is_available() else False,
+            device='cuda',
+            **vars(args)
     ), overwrite_args={'model_parallel_size': world_size} if world_size != 1 else {})
     model = model.eval()
     from sat.mpu import get_model_parallel_world_size
@@ -53,7 +53,6 @@ def main():
     image_processor = get_image_processor(model_args.eva_args["image_size"][0])
 
     model.add_mixin('auto-regressive', CachedAutoregressiveMixin())
-
     text_processor_infer = llama2_text_processor_inference(tokenizer, args.max_length, model.image_length)
 
     if not args.english:
