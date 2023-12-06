@@ -22,17 +22,19 @@ def load_model(args, rank, world_size):
     model, model_args = CogVLMModel.from_pretrained(
         args.from_pretrained,
         args=argparse.Namespace(
-        deepspeed=None,
-        local_rank=rank,
-        rank=rank,
-        world_size=world_size,
-        model_parallel_size=world_size,
-        mode='inference',
-        fp16=args.fp16,
-        bf16=args.bf16,
-        skip_init=True,
-        use_gpu_initialization=True,
-        device=f'cuda'),
+            deepspeed=None,
+            local_rank=rank,
+            rank=rank,
+            world_size=world_size,
+            model_parallel_size=world_size,
+            mode='inference',
+            fp16=args.fp16,
+            bf16=args.bf16,
+            skip_init=True,
+            use_gpu_initialization=True if torch.cuda.is_available() else False,
+            device=f'cuda',
+            **vars(args)
+        ),
         overwrite_args={'model_parallel_size': world_size} if world_size != 1 else {}
     )
     model = model.eval()
@@ -68,13 +70,13 @@ def chat_api():
                 text_processor=text_processor_infer,
                 img_processor=image_processor,
                 query=input_text,
-                history=[],
+                history=None,
                 image=pil_img,
                 max_length=2048,
                 top_p=top_p,
                 temperature=temperature,
                 top_k=top_k,
-                invalid_slices=text_processor_infer.invalid_slices if hasattr(text_processor_infer, "invalid_slices") else [],
+                invalid_slices=text_processor_infer.invalid_slices,
                 no_prompt=False
             )
     except Exception as e:
@@ -96,10 +98,11 @@ if __name__ == '__main__':
     parser.add_argument("--no_prompt", action='store_true', help='Sometimes there is no prompt in stage 1')
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--bf16", action="store_true")
+    args = parser.parse_args()
     rank = int(os.environ.get('RANK', 0))
     world_size = int(os.environ.get('WORLD_SIZE', 1))
     parser = CogVLMModel.add_model_specific_args(parser)
-    args = parser.parse_args()   
+    args = parser.parse_args()
 
     load_model(args, rank, world_size)  # Load the model when starting the app
     # Start the Flask app only if the rank is 0
