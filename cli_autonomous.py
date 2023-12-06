@@ -119,7 +119,7 @@ def main():
                 continue
             
             if rank == 0:
-                image_path = [next_message.image_path]
+                image_path = [next_message['image_path']]
             else:
                 image_path = [None]
 
@@ -129,7 +129,7 @@ def main():
             assert image_path is not None
 
             if rank == 0:
-                query = [next_message.query]
+                query = [next_message['query']]
             else:
                 query = [None]
     

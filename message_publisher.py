@@ -2,7 +2,7 @@ import pika
 import json
 import argparse
 
-def publish_message(image_path, input_text):
+def publish_message(image_path, query):
     credentials = pika.PlainCredentials('guest', 'guest')
     parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
     connection = pika.BlockingConnection(parameters)
@@ -12,7 +12,7 @@ def publish_message(image_path, input_text):
 
     message = {
         'image_path': image_path,
-        'input_text': input_text
+        'query': query
     }
 
     channel.basic_publish(
@@ -28,8 +28,8 @@ def publish_message(image_path, input_text):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Publish a message for image processing.')
     parser.add_argument('image_path', type=str, help='Path to the image')
-    parser.add_argument('input_text', type=str, help='Input text for the chat')
+    parser.add_argument('query', type=str, help='Input text for the chat')
 
     args = parser.parse_args()
 
-    publish_message(args.image_path, args.input_text)
+    publish_message(args.image_path, args.query)
