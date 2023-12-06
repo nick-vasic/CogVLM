@@ -59,7 +59,7 @@ def chat_api():
     else:
         pil_img = None
 
-    try:
+    try:  
         with torch.no_grad():
             response, _, _ = chat(
                 model=model,
@@ -100,4 +100,9 @@ if __name__ == '__main__':
     args = parser.parse_args()   
 
     load_model(args)  # Load the model when starting the app
-    app.run(debug=True, port=5000)
+    # Start the Flask app only if the rank is 0
+    if rank == 0:
+        app.run(debug=False, port=5000)  # Set debug to False in production
+    else:
+        # For non-zero ranks, you can perform other tasks or simply do nothing
+        pass
