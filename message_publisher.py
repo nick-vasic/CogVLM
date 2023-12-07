@@ -52,7 +52,7 @@ def wait_for_reply(message_id):
             channel.basic_ack(method_frame.delivery_tag)
             body = json.loads(body)
             if body.get('request_id') == message_id:
-                return body.response
+                return body.get('response')
         time.sleep(1)
 
     connection.close()
