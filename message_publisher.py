@@ -1,6 +1,7 @@
 import pika
 import json
 import argparse
+import uuid
 
 def publish_message(image_path, query):
     credentials = pika.PlainCredentials('guest', 'guest')
@@ -9,8 +10,12 @@ def publish_message(image_path, query):
     channel = connection.channel()
 
     channel.queue_declare(queue='chat_queue', durable=True)
+    
+    # Generate a unique ID for the message
+    message_id = str(uuid.uuid4())
 
     message = {
+        'id': message_id,
         'image_path': image_path,
         'query': query
     }

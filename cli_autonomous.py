@@ -15,27 +15,6 @@ from models.cogvlm_model import CogVLMModel
 from utils.language import llama2_tokenizer, llama2_text_processor_inference
 from utils.vision import get_image_processor
 
-IMAGE_PATHS = [
-    'https://i0.wp.com/theconstructor.org/wp-content/uploads/2017/10/building-foundations.jpg',
-    'https://plus.unsplash.com/premium_photo-1671808062726-2a7ffcd6109e',
-    'https://thumbs.dreamstime.com/b/construction-site-new-industrial-building-concrete-block-walls-columns-telescopic-crane-foamed-reinforced-260900151.jpg',
-    # Add more image paths
-]
-
-# Example list of queries
-QUERIES = [
-    'What is in this image?',
-    'Describe this picture.',
-    'What colors do you see in the image?',
-    # Add more queries
-]
-
-def generate_random_image_path():
-    return random.choice(IMAGE_PATHS)
-
-def generate_random_query():
-    return random.choice(QUERIES)
-
 def get_next_message():
     credentials = pika.PlainCredentials('guest', 'guest')
     parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
@@ -50,6 +29,22 @@ def get_next_message():
         return json.loads(body)
     else:
         return None
+    
+def post_reply(response, request_message_id):
+    credentials = pika.PlainCredentials('guest', 'guest')
+    parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+
+    channel.queue_declare(queue='reply_queue', durable=True)
+
+    message = {
+        'response': response,
+        'request_id': request_message_id
+    }
+    channel.basic_publish(exchange='', routing_key='reply_queue', body=json.dumps(message))
+
+    connection.close()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -148,7 +143,7 @@ def main():
                 print(e)
                 break
             if rank == 0:
-                print("Model: "+response)
+                post_reply(response, next_message['id'])
                 if tokenizer.signal_type == "grounding":
                     print("Grounding result is saved at ./output.png")
 
