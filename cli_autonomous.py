@@ -7,6 +7,8 @@ import time
 import torch
 import argparse
 from sat.model.mixins import CachedAutoregressiveMixin
+import pika
+import json
 
 from utils.chat import chat
 from models.cogvlm_model import CogVLMModel
@@ -35,17 +37,19 @@ def generate_random_query():
     return random.choice(QUERIES)
 
 def get_next_message():
-    # Generate a random image path and query
-    image_path = generate_random_image_path()
-    query = generate_random_query()
+    credentials = pika.PlainCredentials('guest', 'guest')
+    parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
 
-    # Create a message as a dictionary
-    message = {
-        'image_path': image_path,
-        'query': query
-    }
+    channel.queue_declare(queue='chat_queue', durable=True)
 
-    return message
+    method_frame, header_frame, body = channel.basic_get(queue='chat_queue')
+    if method_frame:
+        channel.basic_ack(method_frame.delivery_tag)
+        return json.loads(body)
+    else:
+        return None
 
 def main():
     parser = argparse.ArgumentParser()
@@ -102,6 +106,8 @@ def main():
             
             if rank == 0:
                 next_message = get_next_message()
+                if next_message is None:
+                    continue
                 image_path = [next_message['image_path']]
             else:
                 image_path = [None]
