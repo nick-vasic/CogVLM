@@ -34,6 +34,19 @@ def generate_random_image_path():
 def generate_random_query():
     return random.choice(QUERIES)
 
+def get_next_message():
+    # Generate a random image path and query
+    image_path = generate_random_image_path()
+    query = generate_random_query()
+
+    # Create a message as a dictionary
+    message = {
+        'image_path': image_path,
+        'query': query
+    }
+
+    return message
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--max_length", type=int, default=2048, help='max length of the total sequence')
@@ -86,18 +99,21 @@ def main():
             time.sleep(2)
             history = None
             cache_image = None
+            
             if rank == 0:
-                image_path = [generate_random_image_path()]
+                next_message = get_next_message()
+                image_path = [next_message['image_path']]
             else:
                 image_path = [None]
 
             if world_size > 1:
                 torch.distributed.broadcast_object_list(image_path, 0)
+
             image_path = image_path[0]
             assert image_path is not None
 
             if rank == 0:
-                query = [generate_random_query()]
+                query = [next_message['query']]
             else:
                 query = [None]
     
