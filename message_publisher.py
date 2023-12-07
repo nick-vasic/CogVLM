@@ -50,10 +50,9 @@ def wait_for_reply(message_id):
         method_frame, header_frame, body = channel.basic_get(queue='reply_queue')
         if method_frame:
             channel.basic_ack(method_frame.delivery_tag)
-            response = json.loads(body)
-            print(list(response.keys()))
-            if response.get('id') == message_id:
-                return response
+            body = json.loads(body)
+            if body.get('request_id') == message_id:
+                return body.response
         time.sleep(1)
 
     connection.close()
