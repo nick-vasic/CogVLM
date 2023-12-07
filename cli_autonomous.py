@@ -36,10 +36,10 @@ def get_next_message():
     query = random.choice(QUERIES)
 
     # Creating a JSON-formatted string
-    message = json.dumps({
+    message = {
         'image_path': image_path,
         'query': query
-    })
+    }
 
     return message
 
@@ -119,7 +119,7 @@ def main():
                 continue
             
             if rank == 0:
-                image_path = [json.loads(next_message).image_path]
+                image_path = [next_message['image_path']]
             else:
                 image_path = [None]
 
@@ -129,7 +129,7 @@ def main():
             assert image_path is not None
 
             if rank == 0:
-                query = [json.loads(next_message).query]
+                query = [next_message['query']]
             else:
                 query = [None]
     
