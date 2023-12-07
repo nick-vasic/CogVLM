@@ -1,7 +1,10 @@
+from flask import Flask, request, jsonify
 import pika
 import json
 import argparse
 import uuid
+
+app = Flask(__name__)
 
 def publish_message(image_path, query):
     credentials = pika.PlainCredentials('guest', 'guest')
@@ -29,12 +32,47 @@ def publish_message(image_path, query):
 
     print(f" [x] Sent {message}")
     connection.close()
+    return message_id
+
+def wait_for_reply(message_id):
+    credentials = pika.PlainCredentials('guest', 'guest')
+    parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+
+    channel.queue_declare(queue='reply_queue', durable=True)
+
+    start_time = time.time()
+    timeout = 30  # seconds
+
+    while time.time() - start_time < timeout:
+        method_frame, header_frame, body = channel.basic_get(queue='reply_queue')
+        if method_frame:
+            channel.basic_ack(method_frame.delivery_tag)
+            response = json.loads(body)
+            if response.get('id') == message_id:
+                return response
+        time.sleep(1)
+
+    connection.close()
+    return None
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.json
+    image_path = data.get('image_path')
+    query = data.get('query')
+
+    if not image_path or not query:
+        return jsonify({'error': 'Missing image_path or query'}), 400
+
+    message_id = publish_message(image_path, query)
+    reply = wait_for_reply(message_id)
+
+    if reply:
+        return jsonify(reply)
+    else:
+        return jsonify({'error': 'No reply received within timeout period'}), 504
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Publish a message for image processing.')
-    parser.add_argument('image_path', type=str, help='Path to the image')
-    parser.add_argument('query', type=str, help='Input text for the chat')
-
-    args = parser.parse_args()
-
-    publish_message(args.image_path, args.query)
+    app.run(debug=True)
