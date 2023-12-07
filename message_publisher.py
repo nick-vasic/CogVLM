@@ -71,7 +71,7 @@ def chat():
     reply = wait_for_reply(message_id)
 
     if reply:
-        return jsonify(reply)
+        return jsonify({'reply': reply})
     else:
         return jsonify({'error': 'No reply received within timeout period'}), 504
 
