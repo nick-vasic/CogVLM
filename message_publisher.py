@@ -51,6 +51,7 @@ def wait_for_reply(message_id):
         if method_frame:
             channel.basic_ack(method_frame.delivery_tag)
             response = json.loads(body)
+            print("Received message: " + response)
             if response.get('id') == message_id:
                 return response
         time.sleep(1)
