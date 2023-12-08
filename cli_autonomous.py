@@ -9,6 +9,7 @@ import argparse
 from sat.model.mixins import CachedAutoregressiveMixin
 import pika
 import json
+from PIL import Image
 
 from utils.chat import chat
 from models.cogvlm_model import CogVLMModel
@@ -104,6 +105,9 @@ def main():
                 if next_message is None:
                     continue
                 image_path = [next_message['image_path']]
+                if not is_valid_image(image_path[0]):
+                    print ('Not a valid image: ' + image_path[0])
+                    image_path = [None]
             else:
                 image_path = [None]
 
@@ -146,6 +150,15 @@ def main():
                 post_reply(response, next_message['id'])
                 if tokenizer.signal_type == "grounding":
                     print("Grounding result is saved at ./output.png")
+
+def is_valid_image(image_path):
+    try:
+        with Image.open(image_path) as img:
+            img.verify()  # Verify that it's an image
+        return True
+    except (IOError, FileNotFoundError):
+        return False
+
 
 if __name__ == "__main__":
     main()
