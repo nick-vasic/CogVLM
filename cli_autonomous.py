@@ -123,6 +123,11 @@ def main():
                 query = [next_message['query']]
             else:
                 query = [None]
+                
+            if rank == 0:
+                history = next_message['history']
+            else:
+                history = []
     
             if world_size > 1:
                 torch.distributed.broadcast_object_list(query, 0)
