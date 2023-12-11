@@ -7,7 +7,7 @@ import time
 
 app = Flask(__name__)
 
-def publish_message(image_path, query):
+def publish_message(image_path, query, history):
     credentials = pika.PlainCredentials('guest', 'guest')
     parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
     connection = pika.BlockingConnection(parameters)
@@ -21,7 +21,8 @@ def publish_message(image_path, query):
     message = {
         'id': message_id,
         'image_path': image_path,
-        'query': query
+        'query': query,
+        'history': history
     }
 
     channel.basic_publish(
@@ -63,11 +64,12 @@ def chat():
     data = request.json
     image_path = data.get('image_path')
     query = data.get('query')
+    history = data.get('history')
 
     if not image_path or not query:
         return jsonify({'error': 'Missing image_path or query'}), 400
 
-    message_id = publish_message(image_path, query)
+    message_id = publish_message(image_path, query, history)
     reply = wait_for_reply(message_id)
 
     if reply:
