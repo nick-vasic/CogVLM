@@ -10,6 +10,8 @@ from sat.model.mixins import CachedAutoregressiveMixin
 import pika
 import json
 from PIL import Image
+import requests
+from io import BytesIO
 
 from utils.chat import chat
 from models.cogvlm_model import CogVLMModel
@@ -153,12 +155,20 @@ def main():
 
 def is_valid_image(image_path):
     try:
-        with Image.open(image_path) as img:
-            img.verify()  # Verify that it's an image
+        # Check if image_path is a URL
+        if image_path.startswith('http://') or image_path.startswith('https://'):
+            response = requests.get(image_path)
+            response.raise_for_status()  # Raise an error for bad status codes
+            with Image.open(BytesIO(response.content)) as img:
+                img.verify()  # Verify that it's an image
+        else:
+            # Local file path
+            with Image.open(image_path) as img:
+                img.verify()  # Verify that it's an image
         return True
-    except (IOError, FileNotFoundError):
+    except Exception as e:
+        print(f"Error: {e}")
         return False
-
 
 if __name__ == "__main__":
     main()
