@@ -106,23 +106,22 @@ def main():
                 next_message = get_next_message()
                 if next_message is None:
                     continue
-                image_path = next_message.get('image_path', [''])
-                if not is_valid_image(image_path[0]):
-                    post_reply('Not a valid image: ' + image_path[0], next_message['id'])
+                image_path = next_message.get('image_path', '')
+                if not is_valid_image(image_path):
+                    post_reply('Not a valid image: ' + image_path, next_message['id'])
                     continue
             else:
-                image_path = [None]
+                image_path = None
 
             if world_size > 1:
                 torch.distributed.broadcast_object_list(image_path, 0)
 
-            image_path = image_path[0]
             assert image_path is not None
 
             if rank == 0:
-                query = next_message.get('query', [''])
+                query = next_message.get('query', '')
             else:
-                query = [None]
+                query = None
                 
             if rank == 0:
                 history = next_message.get('history', [])
@@ -132,7 +131,7 @@ def main():
     
             if world_size > 1:
                 torch.distributed.broadcast_object_list(query, 0)
-            query = query[0]
+                
             assert query is not None
                 
             try:
