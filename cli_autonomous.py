@@ -109,7 +109,7 @@ def main():
                 image_path = [next_message['image_path']]
                 if not is_valid_image(image_path[0]):
                     print ('Not a valid image: ' + image_path[0])
-                    image_path = [None]
+                    continue
             else:
                 image_path = [None]
 
