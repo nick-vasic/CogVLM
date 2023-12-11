@@ -114,7 +114,9 @@ def main():
                 image_path = None
 
             if world_size > 1:
-                torch.distributed.broadcast_object_list([image_path], 0)
+                image_path_broadcast_list = [image_path]
+                torch.distributed.broadcast_object_list(image_path_broadcast_list, 0)
+                image_path = image_path_broadcast_list[0]
 
             assert image_path is not None
 
@@ -123,17 +125,23 @@ def main():
             else:
                 query = None
                 
+            if world_size > 1:
+                query_broadcast_list = [query]
+                torch.distributed.broadcast_object_list(query_broadcast_list, 0)
+                query = query_broadcast_list[0]
+            
+            assert query is not None
+                
             if rank == 0:
                 history = next_message.get('history', [])
             else:
                 history = []
-
-    
+            
             if world_size > 1:
-                torch.distributed.broadcast_object_list(query, 0)
-                
-            assert query is not None
-                
+                history_broadcast_list = history
+                torch.distributed.broadcast_object_list(history_broadcast_list, 0)
+                history = history_broadcast_list
+  
             try:
                 response, history, cache_image = chat(
                     image_path,
