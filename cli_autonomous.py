@@ -33,7 +33,7 @@ def get_next_message():
     else:
         return None
     
-def post_reply(response, request_message_id):
+def post_reply(response, history, request_message_id):
     credentials = pika.PlainCredentials('guest', 'guest')
     parameters = pika.ConnectionParameters(host='localhost', credentials=credentials)
     connection = pika.BlockingConnection(parameters)
@@ -43,6 +43,7 @@ def post_reply(response, request_message_id):
 
     message = {
         'response': response,
+        'history': history,
         'request_id': request_message_id
     }
     channel.basic_publish(exchange='', routing_key='reply_queue', body=json.dumps(message))
@@ -138,9 +139,9 @@ def main():
                 history = []
             
             if world_size > 1 and history:
-                    history_broadcast_list = history
-                    torch.distributed.broadcast_object_list(history_broadcast_list, 0)
-                    history = history_broadcast_list
+                history_broadcast_list = history
+                torch.distributed.broadcast_object_list(history_broadcast_list, 0)
+                history = history_broadcast_list
   
             try:
                 response, history, cache_image = chat(
@@ -162,7 +163,8 @@ def main():
                 print(e)
                 break
             if rank == 0:
-                post_reply(response, next_message['id'])
+                print(json.dumps(history))
+                post_reply(response, history, next_message['id'])
                 if tokenizer.signal_type == "grounding":
                     print("Grounding result is saved at ./output.png")
 
