@@ -137,10 +137,10 @@ def main():
             else:
                 history = []
             
-            if world_size > 1:
-                history_broadcast_list = history
-                torch.distributed.broadcast_object_list(history_broadcast_list, 0)
-                history = history_broadcast_list
+            if world_size > 1 and history:
+                    history_broadcast_list = history
+                    torch.distributed.broadcast_object_list(history_broadcast_list, 0)
+                    history = history_broadcast_list
   
             try:
                 response, history, cache_image = chat(
