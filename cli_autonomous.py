@@ -143,6 +143,7 @@ def main():
                 torch.distributed.broadcast_object_list(history_broadcast_list, 0)
                 history = history_broadcast_list
   
+            print("HISTORY" + json.dumps(history));
             try:
                 response, history, cache_image = chat(
                     image_path,
@@ -163,7 +164,6 @@ def main():
                 print(e)
                 break
             if rank == 0:
-                print(json.dumps(history))
                 post_reply(response, history, next_message['id'])
                 if tokenizer.signal_type == "grounding":
                     print("Grounding result is saved at ./output.png")
