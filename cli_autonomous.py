@@ -139,11 +139,11 @@ def main():
                 history = []
             
             if world_size > 1 and history:
-                history_broadcast_list = history
+                history_broadcast_list = [json.dumps(history)]
                 torch.distributed.broadcast_object_list(history_broadcast_list, 0)
-                history = history_broadcast_list
+                history = json.loads(history_broadcast_list[0])
   
-            print("HISTORY" + json.dumps(history));
+            print("HISTORY" + json.dumps(history))
             try:
                 response, history, cache_image = chat(
                     image_path,
