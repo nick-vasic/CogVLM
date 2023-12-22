@@ -170,7 +170,7 @@ def main():
 
 def is_valid_image(image_path):
     try:
-        # Check if image_path is a URL
+        # Check if image_path is a URL -- test
         if image_path.startswith('http://') or image_path.startswith('https://'):
             response = requests.get(image_path)
             response.raise_for_status()  # Raise an error for bad status codes
