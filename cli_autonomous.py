@@ -111,6 +111,7 @@ def main():
         
     with torch.no_grad():
         while True:
+            time.sleep(0.5)
             history = None
             cache_image = None
             
@@ -176,7 +177,6 @@ def main():
                 print(e)
                 break
             if rank == 0:
-                print("REPLY" + json.dumps(response))
                 post_reply(response, history, next_message['id'])
 
 def is_valid_image(image_path):
