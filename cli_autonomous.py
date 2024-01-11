@@ -177,6 +177,7 @@ def main():
                 print(e)
                 break
             if rank == 0:
+                print("REPLY" + json.dumps(response))
                 post_reply(response, history, next_message['id'])
 
 def is_valid_image(image_path):
