@@ -13,7 +13,7 @@ def publish_message(image_path, query, history):
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
-    channel.queue_declare(queue='chat_queue', durable=True)
+    channel.queue_declare(queue='chat_queue', durable=False)
     
     # Generate a unique ID for the message
     message_id = str(uuid.uuid4())
@@ -42,7 +42,7 @@ def wait_for_reply(message_id):
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
-    channel.queue_declare(queue='reply_queue', durable=True)
+    channel.queue_declare(queue='reply_queue', durable=False)
 
     start_time = time.time()
     timeout = 30  # seconds

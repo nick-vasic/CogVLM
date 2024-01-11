@@ -25,7 +25,7 @@ def get_next_message():
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
-    channel.queue_declare(queue='chat_queue', durable=True)
+    channel.queue_declare(queue='chat_queue', durable=False)
 
     method_frame, header_frame, body = channel.basic_get(queue='chat_queue')
     if method_frame:
