@@ -107,7 +107,7 @@ def main():
     text_processor_infer = llama2_text_processor_inference(tokenizer, args.max_length, model.image_length)
 
     if rank == 0:
-        print('Welcome to CogVLM-CLI. Enter an image URL or local file path to load an image. Continue inputting text to engage in a conversation. Type "clear" to start over, or "stop" to end the program.')
+        print('*********** LISTENING FOR REQUESTS ***********')
         
     with torch.no_grad():
         while True:
@@ -120,6 +120,7 @@ def main():
                 if next_message is None:
                     continue
                 image_path = next_message.get('image_path', '')
+                print('Message received: ' + next_message['id'])
                 if not is_valid_image(image_path):
                     post_reply('Not a valid image: ' + image_path, [], next_message['id'])
                     continue
@@ -154,8 +155,7 @@ def main():
                 history_broadcast_list = [json.dumps(history)]
                 torch.distributed.broadcast_object_list(history_broadcast_list, 0)
                 history = json.loads(history_broadcast_list[0])
-  
-            print("HISTORY" + json.dumps(history))
+                
             try:
                 response, history, cache_image = chat(
                         image_path,
