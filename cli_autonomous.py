@@ -111,7 +111,6 @@ def main():
         
     with torch.no_grad():
         while True:
-            time.sleep(2)
             history = None
             cache_image = None
             
