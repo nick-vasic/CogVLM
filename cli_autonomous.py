@@ -40,7 +40,7 @@ def post_reply(response, history, request_message_id):
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
-    channel.queue_declare(queue='reply_queue', durable=True)
+    channel.queue_declare(queue='reply_queue', durable=False)
 
     message = {
         'response': response,
